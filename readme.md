@@ -24,7 +24,7 @@ All arguments after the input and output files will be interpreted as options th
 
 The following is a full list of options supported by _DOOM WAD Corrupter_:
 
-|Optiopns|Arguments|Description|
+|Options|Arguments|Description|
 |--------|---------|-----------|
 |___-start___|_\<offset>_|Specifies the byte at which the corruption begins. This byte is included in the corruption. The default value is a ranomd number between zero and fifty
 |___-end___|_\<offset>_|Specifies the byte at which corruption ends. Omit this option to specify ending at the end of the lump's data (default).|
