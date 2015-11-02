@@ -26,10 +26,10 @@ The following is a full list of options supported by _DOOM WAD Corrupter_:
 
 |Options|Arguments|Description|
 |--------|---------|-----------|
-|___-start___|_\<offset>_|Specifies the byte at which the corruption begins. This byte is included in the corruption. The default value is a ranomd number between zero and fifty
+|___-start___|_\<offset>_|Specifies the byte at which the corruption begins. This byte is included in the corruption. The default value is a random number between zero and fifty
 |___-end___|_\<offset>_|Specifies the byte at which corruption ends. Omit this option to specify ending at the end of the lump's data (default).|
-|___-inc___|_\<amount>_|Specifies the inveral at which to corrupt bytes within the starting and ending points of the lump's data. The default value is a random number between one and thirty-two.|
-|___-mode___|_\<mode> [\<value>]_|Specifies exactly how to manipulate each byte qeued for corruption. The default value is a random mode with a random value or seed.
+|___-inc___|_\<amount>_|Specifies the interval at which to corrupt bytes within the starting and ending points of the lump's data. The default value is a random number between one and thirty-two.|
+|___-mode___|_\<mode> [\<value>]_|Specifies exactly how to manipulate each byte queued for corruption. The default value is a random mode with a random value or seed.
 |___-skip___ <br> ___-only___|_\<filter> [...]_ <br> _\<filter> [...]_|Filters the lumps queued for corruption by skipping over or including only the ones matching the filter, respectively. See __Lump Filtering__ for more details.|
 |___-zdoom___||Specifies that any G/ZDOOM lumps that are found in the WAD should not be corrupted, regardless of any filters. See __Lump Filtering__ for more details.|
 
@@ -70,11 +70,11 @@ This auto-complete mode will fill in random values for each of the specified opt
 |___-start___|_?? \<min> \<max>_|Sets the starting byte to a random value between _\<min>_ (inclusive) and _\<max>_ (inclusive).|
 |___-end___|_?? \<min> \<max>_|Sets the ending byte to a random value between _\<min>_ (inclusive) and _\<max>_ (inclusive).|
 |___-inc___|_?? \<min> \<max>_|Sets the increment to a random value between _\<min>_ (inclusive) and _\<max>_ (inclusive).|
-|___-mode___|_??_|Sets the mode to arandom mode and assigns it a random value or seed. This is the default.|
+|___-mode___|_??_|Sets the mode to a random mode and assigns it a random value or seed. This is the default.|
 
 ## Lump Filtering
 
-By default, _DOOM WAD Corrupter_ corrupts all lumps in the WAD. To skip certain lumps, or to corrupt only certain lumps, you may use the ___-skip___ (exlusive) and ___-only___ (inclusive) options, respectively. These options are called _filter groups_. Lump filtering works using regular expressions and special keywords (see below). You many combine both kinds of filter groups on the same command line, as well as have any number of each.
+By default, _DOOM WAD Corrupter_ corrupts all lumps in the WAD. To skip certain lumps, or to corrupt only certain lumps, you may use the ___-skip___ (exclusive) and ___-only___ (inclusive) options, respectively. These options are called _filter groups_. Lump filtering works using regular expressions and special keywords (see below). You may combine both kinds of filter groups on the same command line, as well as have any number of each.
 
 Both of the filter groups allow you to specify more than _filter_ (i.e. lump name, regular expression, or special keyword). Each of these must successfully match for that particular filter group to match; on the other hand, only one filter group needs to successfully match for a lump to be selected for corruption.
 
