@@ -85,6 +85,7 @@ namespace arookas {
 
 					foreach (var lump in lumps) {
 						reader.Goto(lump.Start);
+						writer.Goto(lump.Start);
 						CheckNamespaceMarker(lump, ref ns);
 						if (options.Filter.IsCorruptable(lump.Name, ns) && !(options.ZDOOM && IsZDOOMLump(lump.Name))) {
 							++lumpsCorrupted;
@@ -112,6 +113,7 @@ namespace arookas {
 					}
 
 					// directory
+					writer.Goto(directoryOffset);
 					foreach (var lump in lumps) {
 						Status("Writing lump directory for '{0}'...", lump.Name);
 						lump.ToStream(writer);
