@@ -8,17 +8,14 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace arookas
-{
-	class DOOMWADCorrupter
-	{
-		static CommandLine cmd;
+namespace arookas {
+	class DOOMWADCorrupter {
+		static aCommandLine cmd;
 		static CorrupterOptions options;
 		static Random rnd;
 
-		static readonly string separator = new String('=', 79);
-		static readonly string[] zdoomLumps =
-		{
+		static readonly string sSeparator = new String('=', 79);
+		static readonly string[] sZDOOMLumps = {
 			"ALTHUDCF", "ANIMDEFS", "CVARINFO", "DECALDEF", "DECORATE", "DEHACKED", "DEHSUPP", "DMXGUS",
 			"FSGLOBAL", "FONTDEFS", "GAMEINFO", "GLDEFS", "KEYCONF", "LANGUAGE", "LOADACS", "LOCKDEFS",
 			"MAPINFO", "MENUDEF", "MODELDEF", "MUSINFO", "PALVERS", "SBARINFO", "SCRIPTS", "SECRETS",
@@ -26,12 +23,10 @@ namespace arookas
 			"X11R6RGB", "ZMAPINFO", "ANIMATED", "BEHAVIOR", "GENMIDI", "SNDCURVE", "SWITCHES",
 		};
 
-		static void Main(string[] arguments)
-		{
+		static void Main(string[] arguments) {
 			Message("doomwadcorrupter v{0} arookas", new Version(0, 1, 12));
 			Separator();
-			if (arguments == null || arguments.Length < 2)
-			{
+			if (arguments == null || arguments.Length < 2) {
 				Message("Usage: doomwadcorrupter <input.wad> <output.wad> [options]");
 				Message();
 				Message("Options:");
@@ -47,68 +42,62 @@ namespace arookas
 				Pause();
 				Exit(false);
 			}
-			string inputWAD = arguments[0];
-			string outputWAD = arguments[1];
-			cmd = new CommandLine(arguments.Skip(2).ToArray());
+			var inputWAD = arguments[0];
+			var outputWAD = arguments[1];
+			cmd = new aCommandLine(arguments.Skip(2).ToArray());
 			options = new CorrupterOptions(cmd);
 			DisplayOptions(inputWAD, outputWAD);
 
 			int lumpCount;
-			int lumpsCorrupted = 0;
-			int lumpsSkipped = 0;
-			int bytesCorrupted = 0;
+			var lumpsCorrupted = 0;
+			var lumpsSkipped = 0;
+			var bytesCorrupted = 0;
 			rnd = new Random((uint)options.CorruptSeed);
-			Stopwatch timeTaken = Stopwatch.StartNew();
-			using (aBinaryReader reader = new aBinaryReader(OpenWAD(inputWAD), Endianness.Little, Encoding.ASCII))
-			{
-				// header
-				string wadType = reader.ReadString(4);
+			var timeTaken = Stopwatch.StartNew();
+			using (var instream = OpenWAD(inputWAD)) {
+				var reader = new aBinaryReader(instream, Endianness.Little, Encoding.ASCII);
 
-				if (wadType != "IWAD" && wadType != "PWAD")
-				{
+				// header
+				var wadType = reader.ReadString(4);
+
+				if (wadType != "IWAD" && wadType != "PWAD") {
 					Error("Input file is not a DOOM WAD.");
 				}
 
 				lumpCount = reader.ReadS32();
-				int directoryOffset = reader.ReadS32();
+				var directoryOffset = reader.ReadS32();
 
 				// directory
-				reader.Keep();
 				reader.Goto(directoryOffset);
-				var lumps = CollectionUtility.Initialize(lumpCount, () => new Lump(reader));
-				reader.Back();
+				var lumps = aCollection.Initialize(lumpCount, () => new Lump(reader));
 
-				using (aBinaryWriter writer = new aBinaryWriter(CreateWAD(outputWAD), Endianness.Little, Encoding.ASCII))
-				{
+				using (var outstream = CreateWAD(outputWAD)) {
+					var writer = new aBinaryWriter(outstream, Endianness.Little, Encoding.ASCII);
 					// header
 					writer.WriteString(wadType);
 					writer.WriteS32(lumpCount);
 					writer.WriteS32(directoryOffset);
 
 					// data
-					byte[] corruptBuff = new byte[options.Increment];
-					byte[] startBuff = new byte[options.Start];
-					LumpNamespace ns = LumpNamespace.Global;
+					var corruptBuff = new byte[options.Increment];
+					var startBuff = new byte[options.Start];
+					var ns = LumpNamespace.Global;
 
-					foreach (var lump in lumps)
-					{
+					foreach (var lump in lumps) {
 						reader.Goto(lump.Start);
 						CheckNamespaceMarker(lump, ref ns);
-						if (options.Filter.IsCorruptable(lump.Name, ns) && !(options.ZDOOM && IsZDOOMLump(lump.Name)))
-						{
+						if (options.Filter.IsCorruptable(lump.Name, ns) && !(options.ZDOOM && IsZDOOMLump(lump.Name))) {
 							++lumpsCorrupted;
-							long i = options.Start;
-							long end = options.End ?? lump.Length;
-							if (i > 0)
-							{
-								int count = (int)System.Math.Min(lump.Length, i);
+							var i = options.Start;
+							var end = options.End ?? lump.Length;
+							if (i > 0) {
+								var count = (int)System.Math.Min(lump.Length, i);
 								reader.Read(startBuff, count);
 								writer.Write8s(startBuff, count);
 							}
-							while (i < lump.Length && i < end)
-							{
+							while (i < lump.Length && i < end) {
 								Status("Corrupting '{0}'... (0x{1:X8} / 0x{2:X8})", lump.Name, i, lump.Length);
-								int count = (int)System.Math.Min(lump.Length - i, options.Increment);
+								var count = (int)System.Math.Min(lump.Length - i, options.Increment);
 								reader.Read(corruptBuff, count);
 								CorruptByte(ref corruptBuff[0], options.CorruptMode, options.CorruptValue);
 								writer.Write8s(corruptBuff, count);
@@ -116,15 +105,14 @@ namespace arookas
 								i += count;
 							}
 						}
-						else
-						{
+						else {
 							++lumpsSkipped;
 							writer.Write8s(reader.Read8s(lump.Length));
 						}
 					}
+
 					// directory
-					foreach (var lump in lumps)
-					{
+					foreach (var lump in lumps) {
 						Status("Writing lump directory for '{0}'...", lump.Name);
 						lump.ToStream(writer);
 					}
@@ -142,53 +130,43 @@ namespace arookas
 			Message("                 Finished at : {0}", DateTime.Now.ToString("HH:mm:ss tt"));
 			Pause();
 		}
-		static void DisplayOptions(string inputWAD, string outputWAD)
-		{
-			Message(	"    Input WAD : {0}", Path.GetFileName(inputWAD));
-			Message(	"   Output WAD : {0}", Path.GetFileName(outputWAD));
-			Message(	"        Start : {0}", options.Start);
+		static void DisplayOptions(string inputWAD, string outputWAD) {
+			Message("    Input WAD : {0}", Path.GetFileName(inputWAD));
+			Message("   Output WAD : {0}", Path.GetFileName(outputWAD));
+			Message("        Start : {0}", options.Start);
 
-			if (options.End != null)
-			{
+			if (options.End != null) {
 				Message("          End : {0}", options.End);
 			}
 
-			Message(	"    Increment : {0}", options.Increment);
-			if (options.CorruptMode == CorruptMode.Random)
-			{
+			Message("    Increment : {0}", options.Increment);
+			if (options.CorruptMode == CorruptMode.Random) {
 				Message("         Mode : {0} ({1})", options.CorruptMode, options.CorruptSeed);
 			}
-			else
-			{
+			else {
 				Message("         Mode : {0} {1}", options.CorruptMode, options.CorruptValue);
 			}
-			Message(	"Filters:");
+			Message("Filters:");
 			Message(options.Filter.ToString());
-			if (options.ZDOOM)
-			{
+			if (options.ZDOOM) {
 				Message("** Skip G/ZDOOM lumps enabled **");
 			}
 			Separator();
 		}
-		static void CheckNamespaceMarker(Lump lump, ref LumpNamespace ns)
-		{
-			switch (lump.Name)
-			{
+		static void CheckNamespaceMarker(Lump lump, ref LumpNamespace ns) {
+			switch (lump.Name) {
 				case "F_START":
-				case "FF_START":
-				{
+				case "FF_START": {
 					ns = LumpNamespace.Flats;
 					break;
 				}
 				case "S_START":
-				case "SS_START":
-				{
+				case "SS_START": {
 					ns = LumpNamespace.Sprites;
 					break;
 				}
 				case "P_START":
-				case "PP_START":
-				{
+				case "PP_START": {
 					ns = LumpNamespace.Patches;
 					break;
 				}
@@ -197,17 +175,14 @@ namespace arookas
 				case "S_END":
 				case "SS_END":
 				case "P_END":
-				case "PP_END":
-				{
+				case "PP_END": {
 					ns = LumpNamespace.Global;
 					break;
 				}
 			}
 		}
-		static void CorruptByte(ref byte b, CorruptMode mode, byte value)
-		{
-			switch (mode)
-			{
+		static void CorruptByte(ref byte b, CorruptMode mode, byte value) {
+			switch (mode) {
 				case CorruptMode.Add: b += value; break;
 				case CorruptMode.Sub: b -= value; break;
 				case CorruptMode.Mul: b *= value; break;
@@ -225,54 +200,43 @@ namespace arookas
 				case CorruptMode.Random: b = (byte)rnd.NextInt32(); break;
 			}
 		}
-		static FileStream OpenWAD(string path)
-		{
-			try
-			{
+		static FileStream OpenWAD(string path) {
+			try {
 				return File.OpenRead(path);
 			}
-			catch
-			{
+			catch {
 				Error("Failed to open the WAD file '{0}'. Check to make sure the file exists and is not already in use.", path);
 				return null;
 			}
 		}
-		static FileStream CreateWAD(string path)
-		{
-			try
-			{
+		static FileStream CreateWAD(string path) {
+			try {
 				return File.Create(path);
 			}
-			catch
-			{
+			catch {
 				Error("Failed to create WAD file '{0}'. Check to make sure the program has access to the given path.", path);
 				return null;
 			}
 		}
 
-		static bool IsZDOOMLump(string name) { return zdoomLumps.Any(i => name.StartsWith(i)); }
+		static bool IsZDOOMLump(string name) { return sZDOOMLumps.Any(i => name.StartsWith(i)); }
 
-		public static void Separator()
-		{
-			Message(separator);
+		public static void Separator() {
+			Message(sSeparator);
 		}
-		public static void Message()
-		{
+		public static void Message() {
 			Console.WriteLine();
 		}
-		public static void Message(string format, params object[] args)
-		{
+		public static void Message(string format, params object[] args) {
 			Console.WriteLine(format, args);
 		}
-		public static void Warning(string format, params object[] args)
-		{
+		public static void Warning(string format, params object[] args) {
 			Console.ForegroundColor = ConsoleColor.Yellow;
 			Console.Write("WARNING: ");
 			Message(format, args);
 			Console.ResetColor();
 		}
-		public static void Error(string format, params object[] args)
-		{
+		public static void Error(string format, params object[] args) {
 			Console.ForegroundColor = ConsoleColor.Red;
 			Console.Write("ERROR: ");
 			Message(format, args);
@@ -280,16 +244,13 @@ namespace arookas
 			Pause();
 			Exit(true);
 		}
-		public static void Status(string format, params object[] args)
-		{
+		public static void Status(string format, params object[] args) {
 			Console.Write("\r{0,-79}", String.Format(format, args));
 		}
-		public static void Pause()
-		{
+		public static void Pause() {
 			Console.ReadKey();
 		}
-		public static void Exit(bool error)
-		{
+		public static void Exit(bool error) {
 			Environment.Exit(error ? 1 : 0);
 		}
 	}

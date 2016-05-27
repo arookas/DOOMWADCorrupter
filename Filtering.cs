@@ -4,42 +4,33 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace arookas
-{
-	class WADFilter
-	{
-		List<FilterGroup> skips, onlys;
+namespace arookas {
+	class WADFilter {
+		List<FilterGroup> mSkips, mOnlys;
 
-		public WADFilter()
-		{
-			skips = new List<FilterGroup>(5);
-			onlys = new List<FilterGroup>(5);
+		public WADFilter() {
+			mSkips = new List<FilterGroup>(5);
+			mOnlys = new List<FilterGroup>(5);
 		}
 
-		public void Skip(IEnumerable<string> filters)
-		{
-			skips.Add(new FilterGroup(filters.Select(f => Filter.CreateFilter(f))));
+		public void Skip(IEnumerable<string> filters) {
+			mSkips.Add(new FilterGroup(filters.Select(f => Filter.CreateFilter(f))));
 		}
-		public void Only(IEnumerable<string> filters)
-		{
-			onlys.Add(new FilterGroup(filters.Select(f => Filter.CreateFilter(f))));
+		public void Only(IEnumerable<string> filters) {
+			mOnlys.Add(new FilterGroup(filters.Select(f => Filter.CreateFilter(f))));
 		}
-		public bool IsCorruptable(string name, LumpNamespace ns)
-		{
-			return (onlys.Count == 0 && skips.Count == 0) || (onlys.Any(f => f.IsMatch(name, ns)) && !skips.Any(f => f.IsMatch(name, ns)));
+		public bool IsCorruptable(string name, LumpNamespace ns) {
+			return (mOnlys.Count == 0 && mSkips.Count == 0) || (mOnlys.Any(f => f.IsMatch(name, ns)) && !mSkips.Any(f => f.IsMatch(name, ns)));
 		}
 
-		public override string ToString()
-		{
+		public override string ToString() {
 			StringBuilder sb = new StringBuilder(256);
-			foreach (var only in onlys)
-			{
+			foreach (var only in mOnlys) {
 				sb.Append("- only");
 				sb.Append(only.ToString());
 				sb.AppendLine();
 			}
-			foreach (var skip in skips)
-			{
+			foreach (var skip in mSkips) {
 				sb.Append("- skip");
 				sb.Append(skip.ToString());
 				sb.AppendLine();
@@ -47,56 +38,44 @@ namespace arookas
 			return sb.ToString();
 		}
 
-		class FilterGroup
-		{
-			Filter[] filters;
+		class FilterGroup {
+			Filter[] mFilters;
 
-			public FilterGroup(string filter)
-			{
-				this.filters = new Filter[1] { Filter.CreateFilter(filter) };
+			public FilterGroup(string filter) {
+				this.mFilters = new Filter[1] { Filter.CreateFilter(filter) };
 			}
-			public FilterGroup(IEnumerable<Filter> filters)
-			{
-				this.filters = filters.ToArray();
+			public FilterGroup(IEnumerable<Filter> filters) {
+				this.mFilters = filters.ToArray();
 			}
 
-			public bool IsMatch(string name, LumpNamespace ns)
-			{
-				return filters.All(f => f.IsMatch(name, ns));
+			public bool IsMatch(string name, LumpNamespace ns) {
+				return mFilters.All(f => f.IsMatch(name, ns));
 			}
 
-			public override string ToString()
-			{
+			public override string ToString() {
 				StringBuilder str = new StringBuilder(256);
-				foreach (var filter in filters)
-				{
+				foreach (var filter in mFilters) {
 					str.Append(' ');
 					str.Append(filter.ToString());
 				}
 				return str.ToString();
 			}
 		}
-		abstract class Filter
-		{
+		abstract class Filter {
 			public abstract bool IsMatch(string name, LumpNamespace ns);
 
-			public static Filter CreateFilter(string filter)
-			{
-				string f = filter.ToLowerInvariant();
-				switch (f)
-				{
+			public static Filter CreateFilter(string filter) {
+				var f = filter.ToLowerInvariant();
+				switch (f) {
 					case "<flats>": return new NamespaceFilter(LumpNamespace.Flats);
 					case "<patches>": return new NamespaceFilter(LumpNamespace.Patches);
 					case "<sprites>": return new NamespaceFilter(LumpNamespace.Sprites);
 					case "<maps>": return new MapFilter(MapLump.Default);
 				}
-				if (f.StartsWith("<maps-") && f.EndsWith(">"))
-				{
+				if (f.StartsWith("<maps-") && f.EndsWith(">")) {
 					MapLump lumps = MapLump.None;
-					foreach (var split in f.Substring(6, f.Length - 7).Split('-'))
-					{
-						switch (split)
-						{
+					foreach (var split in f.Substring(6, f.Length - 7).Split('-')) {
+						switch (split) {
 							case "all": lumps |= MapLump.All; continue;
 							case "bm": lumps |= MapLump.BLOCKMAP; continue;
 							case "ld": lumps |= MapLump.LINEDEFS; continue;
@@ -115,55 +94,43 @@ namespace arookas
 				return new RegexFilter(filter);
 			}
 
-			class RegexFilter : Filter
-			{
+			class RegexFilter : Filter {
 				Regex regex;
 
-				public RegexFilter(string pattern)
-				{
+				public RegexFilter(string pattern) {
 					regex = new Regex(pattern);
 				}
 
-				public override bool IsMatch(string name, LumpNamespace ns)
-				{
+				public override bool IsMatch(string name, LumpNamespace ns) {
 					return regex.IsMatch(name);
 				}
-				public override string ToString()
-				{
+				public override string ToString() {
 					return regex.ToString();
 				}
 			}
-			class NamespaceFilter : Filter
-			{
+			class NamespaceFilter : Filter {
 				LumpNamespace ns;
 
-				public NamespaceFilter(LumpNamespace ns)
-				{
+				public NamespaceFilter(LumpNamespace ns) {
 					this.ns = ns;
 				}
 
-				public override bool IsMatch(string name, LumpNamespace ns)
-				{
+				public override bool IsMatch(string name, LumpNamespace ns) {
 					return this.ns == ns;
 				}
-				public override string ToString()
-				{
+				public override string ToString() {
 					return String.Format("( {0} )", ns);
 				}
 			}
-			class MapFilter : Filter
-			{
+			class MapFilter : Filter {
 				MapLump lumps;
 
-				public MapFilter(MapLump lumps)
-				{
+				public MapFilter(MapLump lumps) {
 					this.lumps = lumps;
 				}
 
-				public override bool IsMatch(string name, LumpNamespace ns)
-				{
-					switch (name)
-					{
+				public override bool IsMatch(string name, LumpNamespace ns) {
+					switch (name) {
 						case "BLOCKMAP": return HasFlag(MapLump.BLOCKMAP);
 						case "LINEDEFS": return HasFlag(MapLump.LINEDEFS);
 						case "NODES": return HasFlag(MapLump.NODES);
@@ -178,15 +145,13 @@ namespace arookas
 					return false;
 				}
 				bool HasFlag(MapLump lumps) { return (this.lumps & lumps) == lumps; }
-				public override string ToString()
-				{
+				public override string ToString() {
 					return String.Format("( {0} )", lumps);
 				}
 			}
 
 			[Flags]
-			enum MapLump
-			{
+			enum MapLump {
 				None = 0,
 				BLOCKMAP = 1,
 				LINEDEFS = 2,

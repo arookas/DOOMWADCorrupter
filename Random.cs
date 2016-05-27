@@ -4,19 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace arookas
-{
-	public class Random
-	{
+namespace arookas {
+	public class Random {
 		uint a, b, c, d;
 
 		public Random()
-			: this(DefaultSeed)
-		{
+			: this(DefaultSeed) {
 
 		}
-		public Random(uint seed)
-		{
+		public Random(uint seed) {
 			a = 0x13200231;
 			b = seed;
 			c = seed;
@@ -25,13 +21,11 @@ namespace arookas
 
 		public static uint DefaultSeed { get { return (uint)DateTime.Now.Millisecond; } }
 
-		uint ROL(uint x, int r)
-		{
+		uint ROL(uint x, int r) {
 			return ((x << r) | (x >> (32 - r)));
 		}
 
-		public uint NextUInt32()
-		{
+		public uint NextUInt32() {
 			uint e = a - ROL(b, 27);
 			a = b ^ ROL(c, 17);
 			b = c + d;

@@ -34,7 +34,7 @@ namespace arookas
 			CorruptSeed = rnd;
 			ZDOOM = false;
 		}
-		public CorrupterOptions(CommandLine cmd)
+		public CorrupterOptions(aCommandLine cmd)
 			: this()
 		{
 			foreach (var param in cmd)
@@ -53,7 +53,7 @@ namespace arookas
 			}
 		}
 
-		void LoadStart(CommandLineParameter param)
+		void LoadStart(aCommandLineParameter param)
 		{
 			if (param.Count == 0)
 			{
@@ -106,7 +106,7 @@ namespace arookas
 				Start = value;
 			}
 		}
-		void LoadEnd(CommandLineParameter param)
+		void LoadEnd(aCommandLineParameter param)
 		{
 			if (param.Count == 0)
 			{
@@ -159,7 +159,7 @@ namespace arookas
 				End = value;
 			}
 		}
-		void LoadInc(CommandLineParameter param)
+		void LoadInc(aCommandLineParameter param)
 		{
 			if (param.Count == 0)
 			{
@@ -212,7 +212,7 @@ namespace arookas
 				Increment = value;
 			}
 		}
-		void LoadMode(CommandLineParameter param)
+		void LoadMode(aCommandLineParameter param)
 		{
 			if (param.Count == 0)
 			{
@@ -256,7 +256,7 @@ namespace arookas
 			}
 			CorruptValue = (byte)value;
 		}
-		void LoadSkip(CommandLineParameter param)
+		void LoadSkip(aCommandLineParameter param)
 		{
 			if (param.Count == 0)
 			{
@@ -267,7 +267,7 @@ namespace arookas
 				Filter.Skip(param);
 			}
 		}
-		void LoadOnly(CommandLineParameter param)
+		void LoadOnly(aCommandLineParameter param)
 		{
 			if (param.Count == 0)
 			{
@@ -278,7 +278,7 @@ namespace arookas
 				Filter.Only(param);
 			}
 		}
-		void LoadZDOOM(CommandLineParameter param)
+		void LoadZDOOM(aCommandLineParameter param)
 		{
 			if (param.Count > 0)
 			{
