@@ -122,7 +122,8 @@ namespace arookas {
 			}
 
 			timeTaken.Stop();
-			Status("Finished corrupting.\n");
+			Status("Finished corrupting.");
+			Message();
 			Separator();
 			Message("                       Files : {0}", lumpCount);
 			Message("             Files corrupted : {0}", lumpsCorrupted);
